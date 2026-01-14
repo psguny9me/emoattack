@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🎮 이모지 디펜스 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <h1>🎮 이모지 디펜스</h1>
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">💰</span>
+                    <span class="stat-label">골드:</span>
+                    <span class="stat-value" id="goldDisplay">200</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">❤️</span>
+                    <span class="stat-label">생명력:</span>
+                    <span class="stat-value" id="livesDisplay">20</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🌊</span>
+                    <span class="stat-label">웨이브:</span>
+                    <span class="stat-value" id="waveDisplay">1 / 10</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <div class="game-main">
+            <!-- Canvas -->
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <!-- Tower Selection Panel -->
+            <aside class="tower-panel">
+                <h2>🏗️ 타워 선택</h2>
+                <div class="tower-grid">
+                    <button class="tower-button" data-tower="archer" data-cost="50">
+                        <div class="tower-emoji">🏹</div>
+                        <div class="tower-name">궁수</div>
+                        <div class="tower-cost">💰 50</div>
+                        <div class="tower-stats">
+                            <small>데미지: 10 | 사거리: 중</small>
+                        </div>
+                    </button>
+
+                    <button class="tower-button" data-tower="machinegun" data-cost="100">
+                        <div class="tower-emoji">🔫</div>
+                        <div class="tower-name">머신건</div>
+                        <div class="tower-cost">💰 100</div>
+                        <div class="tower-stats">
+                            <small>데미지: 5 | 연사력: 높음</small>
+                        </div>
+                    </button>
+
+                    <button class="tower-button" data-tower="bomb" data-cost="150">
+                        <div class="tower-emoji">💣</div>
+                        <div class="tower-name">폭탄</div>
+                        <div class="tower-cost">💰 150</div>
+                        <div class="tower-stats">
+                            <small>데미지: 30 | 범위 공격</small>
+                        </div>
+                    </button>
+
+                    <button class="tower-button" data-tower="laser" data-cost="200">
+                        <div class="tower-emoji">⚡</div>
+                        <div class="tower-name">레이저</div>
+                        <div class="tower-cost">💰 200</div>
+                        <div class="tower-stats">
+                            <small>데미지: 50 | 사거리: 김</small>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="selected-tower-info" id="selectedTowerInfo">
+                    <p>타워를 선택하고 맵에 배치하세요</p>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="game-controls">
+            <button id="startBtn" class="control-btn primary">▶️ 시작</button>
+            <button id="pauseBtn" class="control-btn" disabled>⏸️ 일시정지</button>
+            <button id="nextWaveBtn" class="control-btn" disabled>⏭️ 다음 웨이브</button>
+            <button id="restartBtn" class="control-btn">🔄 재시작</button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2 id="gameOverTitle">게임 종료</h2>
+            <p id="gameOverMessage"></p>
+            <div class="modal-stats" id="finalStats"></div>
+            <button id="playAgainBtn" class="control-btn primary">다시 플레이</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="pathSystem.js"></script>
+    <script src="entities.js"></script>
+    <script src="waveManager.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
