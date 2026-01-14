@@ -392,34 +392,44 @@ body {
     }
 
     .game-header {
-        padding: 12px;
-        flex-direction: column;
+        padding: 6px 12px;
+        flex-direction: row;
+        justify-content: space-between;
         align-items: center;
-        text-align: center;
+        border-radius: var(--radius-md);
     }
 
     .game-header h1 {
-        font-size: 1.5rem;
-        margin-bottom: 8px;
+        font-size: 1rem;
+        margin-bottom: 0;
+        width: auto;
     }
 
     .game-stats {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        width: auto;
+        display: flex;
+        gap: 4px;
     }
 
     .stat-item {
-        flex-direction: column;
-        padding: 8px;
-        font-size: 0.8rem;
+        flex-direction: row;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        gap: 4px;
+        background: transparent;
+        border: none;
     }
 
     .stat-label {
-        display: block;
-        font-size: 0.65rem;
-        margin-bottom: 2px;
+        display: none;
+    }
+
+    .stat-icon {
+        font-size: 1rem;
+    }
+
+    .stat-value {
+        font-size: 0.85rem;
     }
 
     .game-main {
@@ -431,8 +441,9 @@ body {
 
     .canvas-wrapper {
         width: 100%;
-        aspect-ratio: 4/3;
-        min-height: 300px;
+        aspect-ratio: 1/1;
+        /* 가로세로 정다각형으로 더 크게 확보 */
+        min-height: 380px;
         flex: none;
         overflow: hidden;
     }
@@ -455,8 +466,9 @@ body {
 
     .tower-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(4, 1fr);
+        /* 4열로 변경하여 높이 차지 최소화 */
+        gap: 6px;
         overflow: visible;
     }
 
@@ -466,12 +478,24 @@ body {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        padding: 12px;
+        padding: 4px 2px;
+        border-width: 1px;
     }
 
     .tower-emoji {
-        font-size: 2rem;
-        margin-bottom: 4px;
+        font-size: 1.25rem;
+        margin-bottom: 2px;
+    }
+
+    .tower-name {
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 1px;
+    }
+
+    .tower-cost {
+        font-size: 0.65rem;
+        margin-bottom: 0;
     }
 
     .tower-stats {
@@ -486,10 +510,11 @@ body {
 
     .game-controls {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        grid-template-columns: repeat(4, 1fr);
+        /* 컨트롤 버튼도 1줄로 압축 */
+        gap: 4px;
         margin-top: 8px;
-        padding-bottom: 24px;
+        padding-bottom: 12px;
     }
 
     .control-btn {
@@ -539,6 +564,55 @@ body {
     .canvas-wrapper {
         min-height: auto;
     }
+}
+
+/* Tower Detail Panel */
+.tower-info-panel {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    display: none;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tower-info-panel.active {
+    display: block;
+}
+
+.tower-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 4px;
+}
+
+.tower-info-title {
+    font-weight: 700;
+    color: var(--accent-primary);
+}
+
+.tower-info-level {
+    font-size: 0.75rem;
+    background: var(--accent-secondary);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.tower-info-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.tower-info-stat-item {
+    display: flex;
+    justify-content: space-between;
 }
 
 /* Animations */

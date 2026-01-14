@@ -90,6 +90,12 @@ class WaveManager {
             if (this.spawnTimer >= this.spawnInterval) {
                 const enemyType = wave.enemies[this.enemiesSpawned];
                 const newEnemy = new Enemy(enemyType, pathSystem);
+
+                // 웨이브에 따른 체력 스케일링 (웨이브마다 20%씩 증가)
+                const hpMultiplier = 1 + (this.currentWave - 1) * 0.2;
+                newEnemy.maxHp = Math.floor(newEnemy.maxHp * hpMultiplier);
+                newEnemy.hp = newEnemy.maxHp;
+
                 enemies.push(newEnemy);
                 this.enemiesSpawned++;
                 this.spawnTimer = 0;

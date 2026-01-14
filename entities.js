@@ -10,10 +10,10 @@ class Enemy {
 
         // 타입별 스탯 (속도를 매우 느리게 조정 - 10%)
         const stats = {
-            ant: { emoji: '🐜', hp: 20, maxHp: 20, speed: 0.000025, gold: 3 },
-            caterpillar: { emoji: '🐛', hp: 50, maxHp: 50, speed: 0.000015, gold: 6 },
-            scorpion: { emoji: '🦂', hp: 80, maxHp: 80, speed: 0.00002, gold: 10 },
-            dragon: { emoji: '🐉', hp: 200, maxHp: 200, speed: 0.000012, gold: 30 }
+            ant: { emoji: '🐜', hp: 20, maxHp: 20, speed: 0.000075, gold: 3 },
+            caterpillar: { emoji: '🐛', hp: 50, maxHp: 50, speed: 0.000045, gold: 6 },
+            scorpion: { emoji: '🦂', hp: 80, maxHp: 80, speed: 0.00006, gold: 10 },
+            dragon: { emoji: '🐉', hp: 250, maxHp: 250, speed: 0.000036, gold: 30 }
         };
 
         const stat = stats[type];

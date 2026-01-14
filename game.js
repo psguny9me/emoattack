@@ -28,6 +28,7 @@ class Game {
         this.draggedTower = null; // 드래그 중인 타워
         this.dragStartPos = null; // 드래그 시작 위치
         this.mergeTargetTower = null; // 합치기 대상 타워
+        this.selectedTower = null; // 선택된 기존 타워 인스턴스
 
         // 타워 비용
         this.towerCosts = {
@@ -40,6 +41,8 @@ class Game {
         // 타이밍
         this.lastTime = 0;
         this.animationId = null;
+        this.autoWaveTimer = 0; // 자동 웨이브 타이머
+        this.isAutoWavePending = false;
 
         this.init();
     }
@@ -173,18 +176,28 @@ class Game {
             if (this.state !== 'playing' && this.state !== 'paused') return;
 
             const touch = e.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
+            const pos = this.getMousePos(touch);
+
+            // 기존 타워 선택 체크
+            const towerAtPos = this.getTowerAtPosition(pos.x, pos.y);
+            if (towerAtPos) {
+                this.selectedTower = towerAtPos;
+                this.selectedTowerType = null; // 새 타워 배치 모드 해제
+                document.querySelectorAll('.tower-button').forEach(b => b.classList.remove('selected'));
+                this.updateUI();
+                return; // 타워 선택 시 드래그나 배치는 스킵 (또는 드래그 시작)
+            } else {
+                this.selectedTower = null;
+                this.updateUI();
+            }
 
             if (this.selectedTowerType) {
-                this.placeTower(x, y);
+                this.placeTower(pos.x, pos.y);
             } else {
-                // 기존 타워 터치 시 드래그 시작
-                const clickedTower = this.getTowerAtPosition(x, y);
-                if (clickedTower) {
-                    this.draggedTower = clickedTower;
-                    this.dragStartPos = { x: clickedTower.x, y: clickedTower.y };
+                const tower = this.getTowerAtPosition(pos.x, pos.y);
+                if (tower) {
+                    this.draggedTower = tower;
+                    this.dragStartPos = { x: tower.x, y: tower.y };
                 }
             }
         }, { passive: false });
@@ -239,10 +252,63 @@ class Game {
 
     selectTower(type) {
         this.selectedTowerType = type;
+        this.selectedTower = null; // 새 타워 선택 시 기존 타워 선택 해제
 
         const info = document.getElementById('selectedTowerInfo');
         const cost = this.towerCosts[type];
         info.innerHTML = `<p><strong>${type}</strong> 선택됨 (💰 ${cost})</p><p>맵에 클릭하여 배치하세요</p>`;
+        this.updateUI(); // UI 업데이트 호출
+    }
+
+    updateUI() {
+        // 골드, 라이프, 스코어 업데이트
+        document.getElementById('gold').innerText = this.gold;
+        document.getElementById('lives').innerText = this.lives;
+        document.getElementById('score').innerText = this.score;
+        document.getElementById('waveInfo').innerText = `웨이브 ${this.waveManager.currentWave} / ${this.waveManager.totalWaves}`;
+
+        // 선택된 타워 정보 패널 업데이트
+        const infoPanel = document.getElementById('towerInfoPanel');
+        if (this.selectedTower) {
+            infoPanel.classList.add('active');
+
+            const towerNames = { archer: '궁수', machinegun: '머신건', bomb: '폭탄', laser: '레이저' };
+            document.getElementById('infoTowerName').innerText = towerNames[this.selectedTower.type];
+            document.getElementById('infoTowerLevel').innerText = `Lv.${this.selectedTower.level}`;
+
+            const statsContainer = document.getElementById('infoTowerStats');
+            const fireRateSec = (1000 / this.selectedTower.fireRate).toFixed(1);
+
+            let html = `
+                <div class="tower-info-stat-item"><span>공격력:</span> <span>${this.selectedTower.damage}</span></div>
+                <div class="tower-info-stat-item"><span>사거리:</span> <span>${this.selectedTower.range}</span></div>
+                <div class="tower-info-stat-item"><span>연사력:</span> <span>${fireRateSec}/초</span></div>
+            `;
+
+            if (this.selectedTower.aoe > 0) {
+                html += `<div class="tower-info-stat-item"><span>공격범위:</span> <span>${this.selectedTower.aoe}</span></div>`;
+            }
+
+            statsContainer.innerHTML = html;
+        } else {
+            infoPanel.classList.remove('active');
+        }
+
+        // 새 타워 배치 정보 업데이트
+        const selectedTowerInfo = document.getElementById('selectedTowerInfo');
+        if (this.selectedTowerType) {
+            const cost = this.towerCosts[this.selectedTowerType];
+            selectedTowerInfo.innerHTML = `<p><strong>${this.selectedTowerType}</strong> 선택됨 (💰 ${cost})</p><p>맵에 클릭하여 배치하세요</p>`;
+        } else {
+            selectedTowerInfo.innerHTML = '<p>타워를 선택하고 맵에 배치하세요</p>';
+        }
+    }
+
+    clearSelection() {
+        this.selectedTower = null;
+        this.selectedTowerType = null;
+        document.querySelectorAll('.tower-button').forEach(b => b.classList.remove('selected'));
+        this.updateUI();
     }
 
     getTowerAtPosition(x, y) {
@@ -361,6 +427,8 @@ class Game {
         if (this.waveManager.canStartNextWave()) {
             this.waveManager.startWave();
             document.getElementById('nextWaveBtn').disabled = true;
+            this.isAutoWavePending = false;
+            this.autoWaveTimer = 0;
         }
     }
 
@@ -425,9 +493,22 @@ class Game {
             // 다음 웨이브 버튼 활성화
             if (this.waveManager.canStartNextWave()) {
                 document.getElementById('nextWaveBtn').disabled = false;
+
+                // 자동 웨이브 타이머 시작
+                this.isAutoWavePending = true;
+                this.autoWaveTimer = 3000;
             } else if (this.waveManager.allWavesCompleted) {
                 this.victory();
                 return;
+            }
+        }
+
+        // 자동 웨이브 타이머 업데이트
+        if (this.isAutoWavePending) {
+            this.autoWaveTimer -= deltaTime;
+            if (this.autoWaveTimer <= 0) {
+                this.isAutoWavePending = false;
+                this.startNextWave();
             }
         }
 
@@ -546,6 +627,10 @@ class Game {
         // 타워
         for (const tower of this.towers) {
             tower.render(this.ctx);
+            // 선택된 타워 사거리 표시
+            if (this.selectedTower === tower) {
+                tower.renderRange(this.ctx);
+            }
         }
 
         // 적
@@ -566,6 +651,15 @@ class Game {
 
             this.ctx.font = '24px Arial';
             this.ctx.fillText('시작 버튼을 눌러주세요', this.displayWidth / 2, this.displayHeight / 2 + 20);
+        }
+
+        // 자동 웨이브 카운트다운 표시
+        if (this.isAutoWavePending && (this.state === 'playing' || this.state === 'paused')) {
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            this.ctx.font = 'bold 22px Arial';
+            this.ctx.textAlign = 'center';
+            const seconds = Math.ceil(this.autoWaveTimer / 1000);
+            this.ctx.fillText(`다음 웨이브까지 ${seconds}초...`, this.displayWidth / 2, 40);
         }
     }
 
