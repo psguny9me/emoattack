@@ -46,12 +46,13 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     min-height: 100vh;
     background-image:
         radial-gradient(circle at 20% 50%, rgba(123, 47, 247, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
-    touch-action: pan-x pan-y;
+    touch-action: auto;
     -webkit-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -379,150 +380,122 @@ body {
 /* Mobile Responsive */
 @media (max-width: 768px) {
     body {
-        overflow: hidden;
+        overflow-y: auto;
     }
 
     .game-container {
-        padding: 8px;
-        gap: 8px;
-        height: 100vh;
-        height: 100dvh;
-        /* 동적 viewport height */
-        overflow: hidden;
+        padding: 12px;
+        gap: 12px;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
     }
 
     .game-header {
-        padding: 8px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        min-height: auto;
+        padding: 12px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
 
     .game-header h1 {
-        font-size: 1.25rem;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 4px;
+        font-size: 1.5rem;
+        margin-bottom: 8px;
     }
 
     .game-stats {
         width: 100%;
-        justify-content: space-around;
-        gap: 4px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
 
     .stat-item {
-        flex: 1;
-        justify-content: center;
-        padding: 4px 8px;
-        font-size: 0.75rem;
-    }
-
-    .stat-icon {
-        font-size: 1.1rem;
+        flex-direction: column;
+        padding: 8px;
+        font-size: 0.8rem;
     }
 
     .stat-label {
-        display: none;
-    }
-
-    .stat-value {
-        font-size: 0.9rem;
+        display: block;
+        font-size: 0.65rem;
+        margin-bottom: 2px;
     }
 
     .game-main {
-        flex: 1;
-        display: flex;
         flex-direction: column;
-        gap: 8px;
-        overflow: hidden;
-        min-height: 0;
-        /* 중요: flex 아이템이 shrink 가능하도록 */
+        height: auto;
+        overflow: visible;
+        gap: 16px;
     }
 
     .canvas-wrapper {
-        flex: 1;
-        min-height: 0;
-        /* 중요: flex 아이템이 shrink 가능하도록 */
+        width: 100%;
+        aspect-ratio: 4/3;
+        min-height: 300px;
+        flex: none;
         overflow: hidden;
     }
 
     .tower-panel {
         width: 100%;
-        max-height: none;
-        height: auto;
-        padding: 8px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        flex-shrink: 0;
+        padding: 0;
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+        box-shadow: none;
+        overflow: visible;
     }
 
     .tower-panel h2 {
-        font-size: 0.875rem;
-        margin-bottom: 6px;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+        text-align: center;
     }
 
     .tower-grid {
-        display: flex;
-        flex-direction: row;
-        gap: 8px;
-        overflow-x: auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        overflow: visible;
     }
 
     .tower-button {
-        padding: 8px;
-        min-width: 120px;
-        flex-shrink: 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 12px;
     }
 
     .tower-emoji {
-        font-size: 1.75rem;
-        margin-bottom: 2px;
-    }
-
-    .tower-name {
-        font-size: 0.875rem;
-        margin-bottom: 2px;
-    }
-
-    .tower-cost {
-        font-size: 0.75rem;
-        margin-bottom: 2px;
+        font-size: 2rem;
+        margin-bottom: 4px;
     }
 
     .tower-stats {
-        font-size: 0.65rem;
+        display: none;
+        /* 작은 화면에선 간략화 */
     }
 
     .selected-tower-info {
-        padding: 6px;
-        font-size: 0.75rem;
-        margin-top: 6px;
+        margin-top: 12px;
+        text-align: center;
     }
 
     .game-controls {
-        gap: 6px;
-        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+        padding-bottom: 24px;
     }
 
     .control-btn {
-        padding: 8px 12px;
-        font-size: 0.875rem;
-        min-width: auto;
-        flex: 1;
-    }
-
-    .modal-content {
-        padding: var(--spacing-lg);
-        width: 95%;
-    }
-
-    .modal-content h2 {
-        font-size: 1.5rem;
-    }
-
-    .modal-content p {
-        font-size: 1rem;
+        min-width: 0;
+        padding: 12px;
+        font-size: 0.9rem;
     }
 }
 
