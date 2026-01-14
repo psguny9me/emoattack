@@ -79,6 +79,14 @@ class Game {
         this.displayHeight = displayHeight;
     }
 
+    getMousePos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
     setupEventListeners() {
         // 윈도우 리사이즈
         window.addEventListener('resize', () => {
@@ -172,53 +180,57 @@ class Game {
 
         // 터치 이벤트 (모바일 지원)
         this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
             if (this.state !== 'playing' && this.state !== 'paused') return;
 
+            e.preventDefault();
             const touch = e.touches[0];
             const pos = this.getMousePos(touch);
 
             // 기존 타워 선택 체크
             const towerAtPos = this.getTowerAtPosition(pos.x, pos.y);
-            if (towerAtPos) {
-                this.selectedTower = towerAtPos;
-                this.selectedTowerType = null; // 새 타워 배치 모드 해제
-                document.querySelectorAll('.tower-button').forEach(b => b.classList.remove('selected'));
-                this.updateUI();
-                return; // 타워 선택 시 드래그나 배치는 스킵 (또는 드래그 시작)
-            } else {
-                this.selectedTower = null;
-                this.updateUI();
-            }
 
             if (this.selectedTowerType) {
-                this.placeTower(pos.x, pos.y);
-            } else {
-                const tower = this.getTowerAtPosition(pos.x, pos.y);
-                if (tower) {
-                    this.draggedTower = tower;
-                    this.dragStartPos = { x: tower.x, y: tower.y };
+                // 배치 모드인 경우
+                if (towerAtPos) {
+                    // 이미 타워가 있는 곳을 터치하면 선택으로 전환
+                    this.selectedTower = towerAtPos;
+                    this.selectedTowerType = null;
+                    document.querySelectorAll('.tower-button').forEach(b => b.classList.remove('selected'));
+                } else {
+                    // 빈 공간이면 설치
+                    this.placeTower(pos.x, pos.y);
                 }
+                this.updateUI();
+            } else {
+                // 일반 모드인 경우
+                if (towerAtPos) {
+                    // 타워 선택 및 드래그 시작 준비
+                    this.selectedTower = towerAtPos;
+                    this.draggedTower = towerAtPos;
+                    this.dragStartPos = { x: towerAtPos.x, y: towerAtPos.y };
+                } else {
+                    this.selectedTower = null;
+                }
+                this.updateUI();
             }
         }, { passive: false });
 
         // 터치 이동 (고스트 타워 또는 드래그)
         this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            if (this.state !== 'playing' && this.state !== 'paused') return;
 
+            e.preventDefault();
             const touch = e.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
+            const pos = this.getMousePos(touch);
 
             if (this.selectedTowerType) {
-                this.ghostTower = { x, y, type: this.selectedTowerType };
+                this.ghostTower = { x: pos.x, y: pos.y, type: this.selectedTowerType };
             } else if (this.draggedTower) {
-                this.draggedTower.x = x;
-                this.draggedTower.y = y;
+                this.draggedTower.x = pos.x;
+                this.draggedTower.y = pos.y;
 
                 // 합칠 수 있는 타워 찾기
-                this.mergeTargetTower = this.findMergeableTower(this.draggedTower, x, y);
+                this.mergeTargetTower = this.findMergeableTower(this.draggedTower, pos.x, pos.y);
             }
         }, { passive: false });
 
@@ -254,9 +266,15 @@ class Game {
         this.selectedTowerType = type;
         this.selectedTower = null; // 새 타워 선택 시 기존 타워 선택 해제
 
-        const info = document.getElementById('selectedTowerInfo');
-        const cost = this.towerCosts[type];
-        info.innerHTML = `<p><strong>${type}</strong> 선택됨 (💰 ${cost})</p><p>맵에 클릭하여 배치하세요</p>`;
+        // 버튼 하이라이트
+        document.querySelectorAll('.tower-button').forEach(btn => {
+            if (btn.dataset.tower === type) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+        });
+
         this.updateUI(); // UI 업데이트 호출
     }
 
