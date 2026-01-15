@@ -50,7 +50,7 @@ class Game {
     init() {
         this.setupCanvas();
         this.setupEventListeners();
-        this.pathSystem = new PathSystem(this.displayWidth, this.displayHeight);
+        this.pathSystem = new PathSystem(this.displayWidth, this.displayHeight, this.scaleFactor);
         this.render();
     }
 
@@ -77,6 +77,9 @@ class Game {
         // 게임 로직은 표시 크기 사용
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
+
+        // 다이내믹 스케일 팩터 계산 (기준 너비 800px)
+        this.scaleFactor = Math.max(0.5, Math.min(1.2, displayWidth / 800));
     }
 
     getMousePos(e) {
@@ -92,7 +95,7 @@ class Game {
         window.addEventListener('resize', () => {
             this.setupCanvas();
             if (this.pathSystem) {
-                this.pathSystem.resize(this.displayWidth, this.displayHeight);
+                this.pathSystem.resize(this.displayWidth, this.displayHeight, this.scaleFactor);
             }
         });
 
@@ -366,26 +369,26 @@ class Game {
         return null;
     }
 
-    mergeTowers(tower1, tower2) {
-        // tower2를 제거하고 tower1을 레벨업
-        const index = this.towers.indexOf(tower1);
-        if (index > -1) {
-            this.towers.splice(index, 1);
+    mergeTowers(towerA, towerB) {
+        // towerA를 제거
+        const indexA = this.towers.indexOf(towerA);
+        if (indexA > -1) {
+            this.towers.splice(indexA, 1);
         }
 
-        // tower2의 위치에서 새로운 레벨의 타워 생성
-        const newLevel = tower2.level + 1;
-        const newTower = new Tower(tower2.type, tower2.x, tower2.y, newLevel);
-
-        // tower2를 newTower로 교체
-        const index2 = this.towers.indexOf(tower2);
-        if (index2 > -1) {
-            this.towers[index2] = newTower;
+        // towerB를 제거
+        const indexB = this.towers.indexOf(towerB);
+        if (indexB > -1) {
+            this.towers.splice(indexB, 1);
         }
+
+        // towerB의 위치에서 새로운 레벨의 타워 생성
+        const newTower = new Tower(towerB.type, towerB.x, towerB.y, towerB.level + 1, this.scaleFactor);
+        this.towers.push(newTower);
 
         // 파티클 이펙트
         for (let i = 0; i < 20; i++) {
-            this.particles.push(new Particle(tower2.x, tower2.y, 'hit'));
+            this.particles.push(new Particle(towerB.x, towerB.y, 'hit', this.scaleFactor));
         }
     }
 
@@ -405,7 +408,7 @@ class Game {
         }
 
         // 다른 타워와 겹치는지 체크
-        const minDistance = 40;
+        const minDistance = 40 * this.scaleFactor;
         for (const tower of this.towers) {
             const dx = tower.x - x;
             const dy = tower.y - y;
@@ -416,14 +419,15 @@ class Game {
         }
 
         // 타워 배치
-        this.towers.push(new Tower(this.selectedTowerType, x, y));
+        const tower = new Tower(this.selectedTowerType, x, y, 1, this.scaleFactor);
+        this.towers.push(tower);
         this.gold -= cost;
-        this.updateUI();
 
         // 선택 해제
         this.selectedTowerType = null;
         this.ghostTower = null;
         document.querySelectorAll('.tower-button').forEach(b => b.classList.remove('selected'));
+        this.updateUI();
 
         const info = document.getElementById('selectedTowerInfo');
         info.innerHTML = '<p>타워를 선택하고 맵에 배치하세요</p>';
@@ -503,7 +507,7 @@ class Game {
 
     update(deltaTime) {
         // 웨이브 업데이트
-        const bonusGold = this.waveManager.update(deltaTime, this.enemies, this.pathSystem);
+        const bonusGold = this.waveManager.update(deltaTime, this.enemies, this.pathSystem, this.scaleFactor);
         if (bonusGold !== null) {
             this.gold += bonusGold;
             this.score += bonusGold;
@@ -605,10 +609,10 @@ class Game {
 
             this.ctx.globalAlpha = 0.5;
             const ghostStats = {
-                archer: { emoji: '🏹', range: 150 },
-                machinegun: { emoji: '🔫', range: 100 },
-                bomb: { emoji: '💣', range: 140 },
-                laser: { emoji: '⚡', range: 200 }
+                archer: { emoji: '🏹', range: 150 * this.scaleFactor },
+                machinegun: { emoji: '🔫', range: 100 * this.scaleFactor },
+                bomb: { emoji: '💣', range: 140 * this.scaleFactor },
+                laser: { emoji: '⚡', range: 200 * this.scaleFactor }
             };
 
             const stat = ghostStats[this.ghostTower.type];
@@ -623,7 +627,7 @@ class Game {
             this.ctx.stroke();
 
             // 이모지
-            this.ctx.font = '28px Arial';
+            this.ctx.font = `${Math.floor(28 * this.scaleFactor)}px Arial`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = '#ffffff';
@@ -662,28 +666,29 @@ class Game {
             this.ctx.fillRect(0, 0, this.displayWidth, this.displayHeight);
 
             this.ctx.fillStyle = '#ffffff';
-            this.ctx.font = 'bold 48px Arial';
+            this.ctx.font = `bold ${Math.floor(48 * this.scaleFactor)}px Arial`;
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
-            this.ctx.fillText('🎮 이모지 디펜스', this.displayWidth / 2, this.displayHeight / 2 - 40);
+            this.ctx.fillText('🎮 이모지 디펜스', this.displayWidth / 2, this.displayHeight / 2 - 40 * this.scaleFactor);
 
-            this.ctx.font = '24px Arial';
-            this.ctx.fillText('시작 버튼을 눌러주세요', this.displayWidth / 2, this.displayHeight / 2 + 20);
+            this.ctx.font = `${Math.floor(24 * this.scaleFactor)}px Arial`;
+            this.ctx.fillText('시작 버튼을 눌러주세요', this.displayWidth / 2, this.displayHeight / 2 + 20 * this.scaleFactor);
         }
 
         // 자동 웨이브 카운트다운 표시
         if (this.isAutoWavePending && (this.state === 'playing' || this.state === 'paused')) {
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            this.ctx.font = 'bold 22px Arial';
+            this.ctx.font = `bold ${Math.floor(22 * this.scaleFactor)}px Arial`;
             this.ctx.textAlign = 'center';
             const seconds = Math.ceil(this.autoWaveTimer / 1000);
-            this.ctx.fillText(`다음 웨이브까지 ${seconds}초...`, this.displayWidth / 2, 40);
+            this.ctx.fillText(`다음 웨이브까지 ${seconds}초...`, this.displayWidth / 2, 40 * this.scaleFactor);
         }
     }
 
     renderPlacementGrid() {
-        const gridSize = 40; // 그리드 간격
-        const dotRadius = 2; // 점 크기
+        const baseGridSize = 40;
+        const gridSize = baseGridSize * this.scaleFactor; // 그리드 간격 스케일링
+        const dotRadius = 2 * this.scaleFactor; // 점 크기 스케일링
 
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
 
@@ -694,7 +699,7 @@ class Game {
                 if (!this.pathSystem.isOnPath(x, y)) {
                     // 다른 타워와 겹치는지 확인
                     let canPlace = true;
-                    const minDistance = 35;
+                    const minDistance = 35 * this.scaleFactor; // 최소 거리 스케일링
                     for (const tower of this.towers) {
                         const dx = tower.x - x;
                         const dy = tower.y - y;

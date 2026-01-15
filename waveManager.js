@@ -78,7 +78,7 @@ class WaveManager {
         this.enemiesInWave = wave.enemies.length;
     }
 
-    update(deltaTime, enemies, pathSystem) {
+    update(deltaTime, enemies, pathSystem, scaleFactor = 1) {
         if (!this.waveInProgress) return null;
 
         const wave = this.waveData[this.currentWave - 1];
@@ -89,7 +89,7 @@ class WaveManager {
 
             if (this.spawnTimer >= this.spawnInterval) {
                 const enemyType = wave.enemies[this.enemiesSpawned];
-                const newEnemy = new Enemy(enemyType, pathSystem);
+                const newEnemy = new Enemy(enemyType, pathSystem, scaleFactor);
 
                 // 웨이브에 따른 체력 스케일링 (웨이브마다 20%씩 증가)
                 const hpMultiplier = 1 + (this.currentWave - 1) * 0.2;

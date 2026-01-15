@@ -1,10 +1,11 @@
 // Path System - 적의 이동 경로 및 타워 배치 가능 영역 관리
 
 class PathSystem {
-    constructor(canvasWidth, canvasHeight) {
+    constructor(canvasWidth, canvasHeight, scaleFactor = 1) {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
-        this.pathWidth = 60;
+        this.scaleFactor = scaleFactor;
+        this.pathWidth = 60 * scaleFactor;
 
         // 웨이포인트 정의 (화면 비율 기반) - 더 복잡한 경로
         this.waypoints = [
@@ -165,9 +166,11 @@ class PathSystem {
     }
 
     // 화면 크기 변경 시 재계산
-    resize(canvasWidth, canvasHeight) {
+    resize(canvasWidth, canvasHeight, scaleFactor = 1) {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
+        this.scaleFactor = scaleFactor;
+        this.pathWidth = 60 * scaleFactor;
         this.calculatePathSegments();
     }
 }

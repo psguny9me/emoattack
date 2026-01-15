@@ -2,13 +2,14 @@
 
 // ========== Enemy 클래스 ==========
 class Enemy {
-    constructor(type, pathSystem) {
+    constructor(type, pathSystem, scaleFactor = 1) {
         this.type = type;
         this.pathSystem = pathSystem;
+        this.scaleFactor = scaleFactor;
         this.progress = 0; // 0~1 사이의 경로 진행도
         this.position = pathSystem.getPositionAtProgress(0);
 
-        // 타입별 스탯 (속도를 매우 느리게 조정 - 10%)
+        // 상단 생략 (stats)
         const stats = {
             ant: { emoji: '🐜', hp: 20, maxHp: 20, speed: 0.000075, gold: 3 },
             caterpillar: { emoji: '🐛', hp: 50, maxHp: 50, speed: 0.000045, gold: 6 },
@@ -25,7 +26,7 @@ class Enemy {
         this.alive = true;
         this.reachedEnd = false;
         this.goldAwarded = false; // 중복 골드 획득 방지용
-        this.size = 30;
+        this.size = 30 * scaleFactor;
     }
 
     update(deltaTime) {
@@ -60,8 +61,8 @@ class Enemy {
         ctx.fillText(this.emoji, this.position.x, this.position.y);
 
         // HP 바
-        const barWidth = 30;
-        const barHeight = 4;
+        const barWidth = 30 * this.scaleFactor;
+        const barHeight = 4 * this.scaleFactor;
         const barX = this.position.x - barWidth / 2;
         const barY = this.position.y - this.size;
 
@@ -78,25 +79,26 @@ class Enemy {
 
 // ========== Tower 클래스 ==========
 class Tower {
-    constructor(type, x, y, level = 1) {
+    constructor(type, x, y, level = 1, scaleFactor = 1) {
         this.type = type;
         this.x = x;
         this.y = y;
         this.level = level;
+        this.scaleFactor = scaleFactor;
         this.target = null;
         this.cooldown = 0;
 
         // 기본 타입별 스탯 (레벨 1)
         const baseStats = {
-            archer: { emoji: '🏹', damage: 10, range: 150, fireRate: 1000, projectileSpeed: 0.3, aoe: 0 },
-            machinegun: { emoji: '🔫', damage: 5, range: 100, fireRate: 300, projectileSpeed: 0.5, aoe: 0 },
-            bomb: { emoji: '💣', damage: 30, range: 140, fireRate: 2000, projectileSpeed: 0.2, aoe: 50 },
-            laser: { emoji: '⚡', damage: 50, range: 200, fireRate: 1500, projectileSpeed: 0.8, aoe: 0 }
+            archer: { emoji: '🏹', damage: 10, range: 150 * scaleFactor, fireRate: 1000, projectileSpeed: 0.3, aoe: 0 },
+            machinegun: { emoji: '🔫', damage: 5, range: 100 * scaleFactor, fireRate: 300, projectileSpeed: 0.5, aoe: 0 },
+            bomb: { emoji: '💣', damage: 30, range: 140 * scaleFactor, fireRate: 2000, projectileSpeed: 0.2, aoe: 50 * scaleFactor },
+            laser: { emoji: '⚡', damage: 50, range: 200 * scaleFactor, fireRate: 1500, projectileSpeed: 0.8, aoe: 0 }
         };
 
         const baseStat = baseStats[type];
         this.emoji = baseStat.emoji;
-        this.size = 28;
+        this.size = 28 * scaleFactor;
 
         // 레벨에 따른 스탯 계산
         this.calculateStats(baseStat);
@@ -183,12 +185,12 @@ class Tower {
 
             // 히트 이펙트
             for (let i = 0; i < 3; i++) {
-                particles.push(new Particle(this.target.position.x, this.target.position.y, 'hit'));
+                particles.push(new Particle(this.target.position.x, this.target.position.y, 'hit', this.scaleFactor));
             }
 
             // 레이저 빔 이펙트 (임시 발사체로 표시하거나 직접 그리기 위해 projectiles에 특수 타입 추가)
             projectiles.push(new Projectile(
-                this.x, this.y, this.target, this.damage, this.projectileSpeed, this.aoe, this.type, false
+                this.x, this.y, this.target, this.damage, this.projectileSpeed, this.aoe, this.type, false, this.scaleFactor
             ));
         } else {
             const isHoming = this.type === 'bomb';
@@ -200,7 +202,8 @@ class Tower {
                 this.projectileSpeed,
                 this.aoe,
                 this.type,
-                isHoming
+                isHoming,
+                this.scaleFactor
             ));
         }
     }
@@ -214,9 +217,9 @@ class Tower {
 
         // 레벨 표시 (2레벨 이상일 때)
         if (this.level > 1) {
-            const levelBadgeSize = 16;
-            const badgeX = this.x + 12;
-            const badgeY = this.y - 12;
+            const levelBadgeSize = 16 * this.scaleFactor;
+            const badgeX = this.x + 12 * this.scaleFactor;
+            const badgeY = this.y - 12 * this.scaleFactor;
 
             // 배지 배경
             ctx.fillStyle = 'rgba(123, 47, 247, 0.9)';
@@ -226,12 +229,12 @@ class Tower {
 
             // 레벨 테두리
             ctx.strokeStyle = '#00d4ff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * this.scaleFactor;
             ctx.stroke();
 
             // 레벨 텍스트
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 10px Arial';
+            ctx.font = `bold ${Math.floor(10 * this.scaleFactor)}px Arial`;
             ctx.fillText(this.level.toString(), badgeX, badgeY);
         }
 
@@ -261,7 +264,7 @@ class Tower {
 
 // ========== Projectile 클래스 ==========
 class Projectile {
-    constructor(x, y, target, damage, speed, aoe, type, homing = true) {
+    constructor(x, y, target, damage, speed, aoe, type, homing = true, scaleFactor = 1) {
         this.x = x;
         this.y = y;
         this.target = target;
@@ -270,8 +273,9 @@ class Projectile {
         this.aoe = aoe;
         this.type = type;
         this.homing = homing;
+        this.scaleFactor = scaleFactor;
         this.alive = true;
-        this.size = 8;
+        this.size = 8 * scaleFactor;
 
         // 레이저인 경우 즉시 타격 처리용 수명
         if (type === 'laser') {
@@ -347,7 +351,7 @@ class Projectile {
                 const dy = enemy.position.y - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                if (distance < 15) {
+                if (distance < 15 * this.scaleFactor) {
                     this.target = enemy; // 히트 시 타겟 설정
                     this.hit(enemies, particles);
                     this.alive = false;
@@ -374,7 +378,7 @@ class Projectile {
 
             // 폭발 이펙트
             for (let i = 0; i < 12; i++) {
-                particles.push(new Particle(this.x, this.y, 'explosion'));
+                particles.push(new Particle(this.x, this.y, 'explosion', this.scaleFactor));
             }
         } else {
             // 단일 타겟 데미지
@@ -382,7 +386,7 @@ class Projectile {
 
             // 히트 이펙트
             for (let i = 0; i < 5; i++) {
-                particles.push(new Particle(this.target.position.x, this.target.position.y, 'hit'));
+                particles.push(new Particle(this.target.position.x, this.target.position.y, 'hit', this.scaleFactor));
             }
         }
     }
@@ -412,10 +416,11 @@ class Projectile {
 
 // ========== Particle 클래스 ==========
 class Particle {
-    constructor(x, y, type) {
+    constructor(x, y, type, scaleFactor = 1) {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.scaleFactor = scaleFactor;
         this.lifetime = 500; // ms
         this.age = 0;
         this.alive = true;
@@ -423,8 +428,8 @@ class Particle {
         // 랜덤 속도
         const angle = Math.random() * Math.PI * 2;
         const speed = type === 'explosion' ? 0.2 + Math.random() * 0.2 : 0.1 + Math.random() * 0.1;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
+        this.vx = (Math.cos(angle) * speed);
+        this.vy = (Math.sin(angle) * speed);
 
         // 색상
         this.color = type === 'explosion' ?
@@ -449,7 +454,7 @@ class Particle {
         const alpha = 1 - (this.age / this.lifetime);
         ctx.fillStyle = this.color.replace('1)', `${alpha})`);
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 3 * this.scaleFactor, 0, Math.PI * 2);
         ctx.fill();
     }
 }
