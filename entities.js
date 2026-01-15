@@ -11,10 +11,10 @@ class Enemy {
 
         // 상단 생략 (stats)
         const stats = {
-            ant: { emoji: '🐜', hp: 20, maxHp: 20, speed: 0.000075, gold: 3 },
-            caterpillar: { emoji: '🐛', hp: 50, maxHp: 50, speed: 0.000045, gold: 6 },
-            scorpion: { emoji: '🦂', hp: 80, maxHp: 80, speed: 0.00006, gold: 10 },
-            dragon: { emoji: '🐉', hp: 250, maxHp: 250, speed: 0.000036, gold: 30 }
+            ant: { emoji: '🐜', hp: 20, maxHp: 20, speed: 0.00005, gold: 3 },
+            caterpillar: { emoji: '🐛', hp: 50, maxHp: 50, speed: 0.00003, gold: 6 },
+            scorpion: { emoji: '🦂', hp: 80, maxHp: 80, speed: 0.00004, gold: 10 },
+            dragon: { emoji: '🐉', hp: 250, maxHp: 250, speed: 0.000025, gold: 30 }
         };
 
         const stat = stats[type];

@@ -58,9 +58,10 @@ class Game {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
 
-        // 표시 크기 설정
-        const displayWidth = Math.floor(rect.width);
-        const displayHeight = Math.floor(rect.height);
+        // 표시 크기 설정 (정사각형 비율 유지를 위해 너비와 높이 중 최소값 사용)
+        const minDim = Math.min(rect.width, rect.height);
+        const displayWidth = Math.floor(minDim);
+        const displayHeight = Math.floor(minDim);
 
         // Retina 지원을 위한 실제 캔버스 크기
         const dpr = window.devicePixelRatio || 1;
@@ -79,7 +80,7 @@ class Game {
         this.displayHeight = displayHeight;
 
         // 다이내믹 스케일 팩터 계산 (기준 너비 800px)
-        this.scaleFactor = Math.max(0.5, Math.min(1.2, displayWidth / 800));
+        this.scaleFactor = Math.max(0.4, Math.min(1.2, displayWidth / 800));
     }
 
     getMousePos(e) {
